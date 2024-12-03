@@ -421,7 +421,7 @@ def writeSesameFile(
         num_words=len(comment),
         creation_date=date_str,
         update_date=date_str,
-        version=0,
+        version=1,
     )
     f.write(header)
     for i in range(len(comment) // 80):
