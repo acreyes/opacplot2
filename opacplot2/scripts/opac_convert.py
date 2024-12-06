@@ -57,6 +57,7 @@ def get_input_data():
                         help='Specify the SESAME table number.')
 
     parser.add_argument("--mpi", action="store", type=str, help="Mass per ion in grams")
+    parser.add_argument("--matid", action="store", type=int, help="Sesame material id")
 
     args = parser.parse_args()
 
@@ -284,7 +285,7 @@ class EosDict_toSesameFile(object):
         ses_dict["t504"] = self.zbar_toSesame(dens, temp, zbar)
         ses_dict["t601"] = self.zbar_toSesame(dens, temp, zbar)
 
-        opp.writeSesameFile(self.args.outname + ".ses", **ses_dict)
+        opp.writeSesameFile(self.args.outname + ".ses", self.args.matid, **ses_dict)
 
     def tables_toSesame(self, dens, temp, pres, enrg, fnrg):
         # flatten (n,t) tables into sesame array for 301-305 tables

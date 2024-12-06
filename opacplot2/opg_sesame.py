@@ -6,6 +6,7 @@ from __future__ import print_function
 from io import open
 import six
 import textwrap
+from datetime import datetime
 
 import opacplot2 as opp
 import opacplot2.utils
@@ -401,35 +402,52 @@ class OpgSesame:
                 if key in log:
                     eos_dict[key] = np.log10(eos_dict[key])
         return eos_dict
-def writeSesameFile(fn, t201, t301, t303, t304, t305, t502, t504, t505, t601):
-    CHAR_LINE_LEN = 80
-    WORDS_PER_LINE = 5
-    comment = 'This Sesame table was generated using OpacPlot2 to convert an IONMIX EoS table to the Sesame format'
-    f = open(fn, 'w')
-    #write comments
-    comment = comment + ' '*(80-len(comment)%80)
-    header = ' 0  9999   101   %d   r    82803    22704   1' % len(comment)
-    header = header + (79-len(header))*' ' + '0\n'
-    f.write(header)
-    for i in range(len(comment)//80):
-        f.write(comment[i*80:(i+1)*80]+'\n')
 
-    def theader(num):
-        return(' 1  9999   %d   240   r    82803    22704   1                                 1\n'  % num)
+
+def writeSesameFile(
+    fn, material_id, t201, t301, t303, t304, t305, t502, t504, t505, t601
+):
+    description_record = "{file_number:>2}{material_id:>6}{table_id:>6}{num_words:>6}   r{creation_date:>9}{update_date:>9}{version:>4}                                {file_number:>2}\n"
+    current_date = datetime.now()
+    date_str = current_date.strftime("%m%d%y")
+    comment = "This Sesame table was generated using OpacPlot2 to convert an IONMIX EoS table to the Sesame format"
+    f = open(fn, "w")
+    # write comments
+    comment = comment + " " * (80 - len(comment) % 80)
+    header = description_record.format(
+        file_number=0,
+        material_id=material_id,
+        table_id=101,
+        num_words=len(comment),
+        creation_date=date_str,
+        update_date=date_str,
+        version=1,
+    )
+    f.write(header)
+    for i in range(len(comment) // 80):
+        f.write(comment[i * 80 : (i + 1) * 80] + "\n")
+
     def write_block(fid, num, data):
-        header = ' 1  9999   %d   %d   r    82803    22704   1'  % (num,len(data))
-        header = header + (79-len(header))*' ' + '1\n'
+        header = description_record.format(
+            file_number=1,
+            material_id=material_id,
+            table_id=num,
+            num_words=len(data),
+            creation_date=date_str,
+            update_date=date_str,
+            version=1,
+        )
         fid.write(header)
         count = 0
         for n in range(len(data)):
             count += 1
-            fid.write('%22.15E' % data[n])
+            fid.write("%22.15E" % data[n])
             if count == 5:
                 count = 0
-                fid.write('11111\n')
+                fid.write("11111\n")
         if count > 0:
-            m = 5-count
-            fid.write(m*22*' ' + count*'1' + m*'0' + '\n')
+            m = 5 - count
+            fid.write(m * 22 * " " + count * "1" + m * "0" + "\n")
 
     write_block(f, 201, t201)
     write_block(f, 301, t301)
